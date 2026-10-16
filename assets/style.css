@@ -1,0 +1,580 @@
+/* ══════════════════════════════════════════════════════════════
+   BLOG.GH0ST4N.MY.ID — STYLESHEET
+   ──────────────────────────────────────────────────────────────
+   DAFTAR ISI:
+   01. Variabel & Reset ......... warna, font, reset dasar
+   02. Utilities ................ container, komponen umum
+   03. Navbar ................... fixed nav + hamburger
+   04. Page Hero ................ judul + typewriter
+   05. Animasi .................. keyframes + fade-in-up
+   06. Toolbar .................. search + filter tag
+   07. Kartu Post ............... list artikel
+   08. Footer
+   09. Responsive ............... mobile / aksesibilitas
+
+   CATATAN DEVELOPMENT:
+   - Tema disalin dari situs utama (gh0st4n.my.id) biar satu
+     keluarga. Ganti tema → edit :root di KETIGANYA
+     (utama + certs + blog).
+   - Kartu post dirender JS (script.js: renderPosts) dari data
+     blog-data.js — class di bagian 07 dipakai hasil render.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 01. VARIABEL & RESET ─────────────── */
+:root {
+  /* Palette warna — sinkron dgn situs utama & certs */
+  --bg-main: #0a0a0f;
+  --bg-card: #10101a;
+  --bg-accent: #14141f;
+  --primary: #7c3aed;
+  --secondary: #a855f7;
+  --accent-cyan: #22d3ee;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --border: #1e1e2e;
+  --glow: rgba(124, 58, 237, 0.15);
+
+  --font-heading: "JetBrains Mono", monospace;
+  --font-body: "Inter", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ─────────────── 02. UTILITIES ─────────────── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section-padding {
+  padding: 80px 0;
+}
+
+.mono {
+  font-family: var(--font-heading);
+}
+
+/* token bracket [ ... ] dilarang pindah baris di tengah —
+   kalau baris gak cukup, yang turun token UTUH-nya */
+.nowrap {
+  white-space: nowrap;
+}
+
+.section-header {
+  margin-bottom: 50px;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  max-width: 600px;
+}
+
+/* varian subtitle tanpa batas lebar — utk kalimat panjang
+   yang pengen tampil 1 baris di desktop */
+.section-subtitle.wide {
+  max-width: none;
+}
+
+.project-link {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  color: var(--text-main);
+  position: relative;
+}
+
+.project-link:hover {
+  color: var(--secondary);
+}
+
+/* chip tag — dipakai di kartu post (dirender JS) */
+.tag {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* ─────────────── 03. NAVBAR ─────────────── */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(10, 10, 15, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 15px 0;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  position: relative;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--text-main);
+}
+
+/* garis cyan menyala di bawah link aktif/hover */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-cyan);
+  transition: width 0.3s;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
+}
+
+/* hamburger — cuma keliatan di mobile (lihat bagian 09) */
+.hamburger {
+  display: none;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: var(--text-main);
+  border-radius: 2px;
+  transition: 0.3s;
+}
+
+/* ─────────────── 04. PAGE HERO ───────────────
+   Hero versi pendek (bukan 100vh) — konten langsung keliatan. */
+.page-hero {
+  min-height: 46vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 110px 0 50px; /* offset navbar fixed di atas */
+}
+
+/* canvas partikel (digambar JS: initParticles) */
+#particles-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* overlay garis scan ala CRT */
+.scanline-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(10, 10, 15, 0.5) 51%
+  );
+  background-size: 100% 4px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-content {
+  text-align: center;
+  z-index: 1;
+  padding: 0 15px;
+  width: 100%;
+}
+
+.hero-greeting {
+  font-family: var(--font-heading);
+  color: var(--accent-cyan);
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 15px;
+  background: linear-gradient(to right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-tagline {
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--text-muted);
+  min-height: 1.6em; /* cegah layout lompat saat teks masih kosong */
+}
+
+/* kursor ketik berkedip */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  background-color: var(--accent-cyan);
+  animation: blink 1s infinite;
+}
+
+/* ─────────────── 05. ANIMASI ─────────────── */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Scroll reveal — dipicu JS (initScrollReveal).
+   ⚠ Kartu post dirender JS SEBELUM observer jalan (urutan di
+   bagian inisialisasi script.js) → kartu hasil render tetap
+   ke-observe animasinya. */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─────────────── 06. TOOLBAR (search + filter tag) ─────────────── */
+.blog-toolbar {
+  margin-bottom: 15px;
+}
+
+/* input search bergaya terminal */
+.blog-search {
+  width: 100%;
+  max-width: 520px;
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  padding: 11px 14px;
+  border-radius: 4px;
+  outline: none;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.blog-search:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.blog-search::placeholder {
+  color: var(--text-muted);
+}
+
+.tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* tombol [ semua ] [ linux ] ... — dibuat JS dari tag unik */
+.filter-btn {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--secondary);
+  color: var(--text-main);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.filter-btn.active {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.post-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 25px;
+}
+
+/* pesan kosong / error / noscript */
+.empty-note {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 30px 0;
+}
+
+/* ─── pagination: [ First ] [ 1 ] [ 2 ] … [ Last ] ───
+   tombolnya meminjam gaya .filter-btn (di atas) —
+   blok ini cuma pelengkap layout & state-nya */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 35px;
+}
+
+.page-btn {
+  min-width: 46px; /* angka 1-2 digit tetap seragam lebarnya */
+  text-align: center;
+  padding: 6px 10px;
+}
+
+/* First di halaman 1 / Last di halaman terakhir → mati */
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none; /* efek hover juga mati total */
+}
+
+/* ellipsis … di antara celah halaman */
+.page-dots {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+/* ─────────────── 07. KARTU POST ───────────────
+   Markup kartu dibangun script.js: renderPosts dari
+   blog-data.js — struktur class di bawah harus disamakan
+   kalau nanti ubah template render. */
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 25px;
+  transition: all 0.3s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 30px -10px var(--glow);
+}
+
+/* disembunyikan via JS (search / filter tag) */
+.post-card.is-hidden {
+  display: none;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.post-meta i {
+  color: var(--primary);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.post-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.post-title a {
+  color: var(--text-main);
+}
+
+.post-title a:hover {
+  color: var(--secondary);
+}
+
+.post-excerpt {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+}
+
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+/* ─────────────── 08. FOOTER ─────────────── */
+footer {
+  padding: 40px 0;
+  background-color: var(--bg-main);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.footer-sub {
+  color: var(--primary);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+}
+
+/* link antar situs saudara di footer */
+.footer-sub a:hover {
+  color: var(--accent-cyan);
+}
+
+/* ─────────────── 09. RESPONSIVE ─────────────── */
+@media (max-width: 768px) {
+  /* menu dropdown */
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 100%;
+    background: var(--bg-card);
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(-150%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+
+  .nav-links.active {
+    transform: translateY(0);
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .page-hero {
+    padding: 100px 0 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  .post-card {
+    padding: 20px;
+  }
+}
+
+/* Aksesibilitas: hormati user yang mematikan animasi di OS-nya */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .cursor {
+    animation: none;
+  }
+}

@@ -1,0 +1,170 @@
+<!doctype html>
+<!--
+  ════════════════════════════════════════════════════════════════
+  BLOG — blog.gh0st4n.my.id
+  ────────────────────────────────────────────────────────────────
+  Situs saudara dari portofolio utama (gh0st4n.my.id).
+  Tema sama persis → kalau ganti tema, sinkronkan :root
+  di style.css situs ini + situs utama + certs.
+
+  CARA MENAMBAH POST (2 langkah, index.html GAK PERLU disentuh):
+  1. Tulis artikelnya → bikin folder + index.html di
+     assets/site/<slug>/ (copy template dari post yang sudah ada)
+  2. Tambah SATU objek { ... } di assets/blog-data.js
+
+  Selesai — kartu, chip tag, filter, search, statistik:
+  nambah OTOMATIS (dibaca JS dari array BLOG).
+
+  STRUKTUR FILE:
+  .
+  ├── index.html            ← file ini (kerangka halaman)
+  └── assets/
+      ├── blog-data.js      ← DATA POST (titik edit utama)
+      ├── script.js         ← semua logika
+      ├── style.css         ← semua styling
+      ├── icons/            ← favicon
+      └── site/             ← artikel per post (1 folder = 1 post)
+  ════════════════════════════════════════════════════════════════
+-->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Blog • Gh0sT4n</title>
+    <meta
+      name="description"
+      content="Blog Gh0sT4n — write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source." />
+    <link rel="icon" type="image/png" href="assets/icons/Gh0sT4n.png" />
+    <meta property="og:site_name" content="Gh0sT4n Blog" />
+    <meta property="og:title" content="Blog • Gh0sT4n" />
+    <meta
+      property="og:description"
+      content="Write-up, catatan, dan tutorial seputar Linux & low-level security." />
+
+    <!-- Font & ikon: sama dgn situs utama
+         Inter          → font body
+         JetBrains Mono → font heading/kode (class .mono)
+         Phosphor Icons → semua <i class="ph ph-..."> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+
+  <body>
+    <!-- ══════════════════ NAVBAR ══════════════════
+         Logo & link saudara → situs utama / certs -->
+    <header>
+      <div class="container">
+        <nav>
+          <a class="logo" href="https://gh0st4n.my.id">Gh0sT4n</a>
+          <div class="nav-links" id="navLinks">
+            <a href="https://gh0st4n.my.id">Portfolio</a>
+            <a href="https://certs.gh0st4n.my.id">Certs</a>
+            <a href="#posts" class="active">Blog</a>
+          </div>
+          <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- ══════════════════ HERO ══════════════════ -->
+      <section class="page-hero">
+        <canvas id="particles-canvas"></canvas>
+        <div class="scanline-overlay"></div>
+
+        <div class="hero-content fade-in-up">
+          <div class="hero-greeting">&gt; tail -f ~/posts.log</div>
+          <h1 class="page-title">// Blog</h1>
+
+          <!-- tagline diketik otomatis (script.js: initTypewriter) -->
+          <p class="page-tagline mono">
+            <span id="typewriter"></span><span class="cursor">|</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- ══════════════════ DAFTAR POST ══════════════════ -->
+      <section id="posts" class="section-padding">
+        <div class="container">
+          <div class="section-header fade-in-up">
+            <h2 class="section-title">// Semua Post</h2>
+            <p class="section-subtitle">
+              Catatan panjang soal Linux, low-level security, dan
+              serba-serba open-source.
+            </p>
+          </div>
+
+          <!-- toolbar: search + filter tag (chip dibuat otomatis JS
+               dari nilai unik field "kategori" di blog-data.js) -->
+          <div class="blog-toolbar fade-in-up">
+            <input
+              type="search"
+              id="blogSearch"
+              class="blog-search mono"
+              placeholder='grep -i "topik..."'
+              aria-label="Cari post" />
+            <div class="tag-filters" id="tagFilters"></div>
+          </div>
+
+          <!-- hasil hitungan diisi otomatis oleh JS -->
+          <p class="post-count mono" id="postCount"></p>
+
+          <!-- kartu post DIRENDER JS dari assets/blog-data.js
+               (array BLOG) — jangan tulis <article> manual di sini.
+               Tambah post = edit blog-data.js, BUKAN file ini. -->
+          <div class="posts-list" id="postsList">
+            <noscript>
+              <p class="empty-note mono">
+                [ JavaScript mati - daftar post gak bisa dirender ]
+              </p>
+            </noscript>
+          </div>
+
+          <!-- pagination — dibuat otomatis oleh JS
+               (muncul kalau post melebihi POSTS_PER_PAGE) -->
+          <nav
+            class="pagination mono"
+            id="pagination"
+            aria-label="Navigasi halaman"
+            hidden>
+          </nav>
+
+          <!-- muncul kalau search/filter gak nemu apa-apa -->
+          <p class="empty-note mono" id="blogEmpty" hidden>
+            [ tidak ada post yang cocok - coba keyword lain ]
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══════════════════ FOOTER ══════════════════ -->
+    <footer>
+      <div class="container">
+        <p class="footer-text">© 2026 Gh0sT4n • Muhammad Luthfi Fakhmar</p>
+        <p class="footer-sub mono">
+          <a href="https://gh0st4n.my.id">gh0st4n.my.id</a> •
+          <a href="https://certs.gh0st4n.my.id">certs.gh0st4n.my.id</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Urutan PENTING:
+         1. blog-data.js → array BLOG harus ada dulu di memori
+         2. script.js    → membaca BLOG & me-render kartu
+         Script di akhir body → DOM pasti sudah kebaca,
+         gak butuh defer. Kalau pindah ke <head>, WAJIB defer. -->
+    <script src="assets/blog-data.js"></script>
+    <script src="assets/script.js"></script>
+  </body>
+</html>

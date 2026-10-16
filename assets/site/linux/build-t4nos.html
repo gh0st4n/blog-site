@@ -1,0 +1,364 @@
+<!doctype html>
+<!--
+  POST: Build T4n OS Sendiri: Dari Source sampai ISO
+  Path: assets/site/linux/build-t4nos.html
+  Metadata (title/desc/h1/meta/tag/shell) otomatis dari
+  blog-data.js via article.js. File ini CUMA berisi konten.
+  data-post = nilai "selengkapnya" post ini di blog-data.js.
+-->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../../icons/Gh0sT4n.png" />
+
+    <!-- font & ikon: identik utk semua artikel (copy-paste) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../article.css" />
+  </head>
+
+  <body>
+
+        <!-- ═══════════ KONTEN ═══════════ -->
+        <div class="post-body">
+          <p>
+            Gue udah sering ditanya: "kenapa sih repot bikin distro sendiri,
+            kan udah ada Void?" Jawaban gue selalu sama - gue gak bikin dari
+            nol. <strong>T4n OS</strong> dibangun di atas
+            <a href="https://voidlinux.org/" target="_blank">Void Linux</a>,
+            dan yang gue kerjakan adalah melapisinya jadi distro yang beneran
+            gue mau pakai dan gue bagikan: init <code>runit</code>, tema GRUB
+            sendiri, varian desktop siap pakai, sampai installer-nya.
+          </p>
+          <p>
+            Alatnya satu: <strong>t4n-live</strong> - kumpulan skrip shell
+            penerus void-mklive yang gue rawat di repo
+            <a href="https://github.com/T4n-Labs/t4n-live" target="_blank"
+              >T4n-Labs/t4n-live</a
+            >. Post ini adalah catatan lengkap proses build-nya: dari repo
+            kosong, xchroot, sampai ISO bisa di-boot.
+          </p>
+
+          <h2>Kenalan dulu sama alatnya</h2>
+          <p>
+            t4n-live bukan satu skrip tunggal, tapi toolchain. Masing-masing
+            skrip punya tugas spesifik:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Skrip</th>
+                <th>Fungsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>t4n-iso.sh</code></td>
+                <td>Live ISO lengkap + installer (i686, x86_64, aarch64)</td>
+              </tr>
+              <tr>
+                <td><code>t4n-live.sh</code></td>
+                <td>Live ISO dasar/minimal - mesin di balik t4n-iso.sh</td>
+              </tr>
+              <tr>
+                <td><code>t4n-rootfs.sh</code></td>
+                <td>ROOTFS tarball, semua arsitektur (tanpa kernel)</td>
+              </tr>
+              <tr>
+                <td><code>t4n-platformfs.sh</code></td>
+                <td>ROOTFS + kernel, per-platform (untuk ARM)</td>
+              </tr>
+              <tr>
+                <td><code>t4n-image.sh</code></td>
+                <td>Image ARM siap-flash via <code>dd</code></td>
+              </tr>
+              <tr>
+                <td><code>t4n-net.sh</code></td>
+                <td>Tarball netboot/PXE</td>
+              </tr>
+              <tr>
+                <td><code>installer.sh</code> / <code>installer.py</code></td>
+                <td>Installer T4n OS (bash &amp; python)</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Skrip-skrip ini bekerja lewat <code>xchroot</code> (chroot
+            cross-architecture): bikin rootfs kosong, install paket ke dalamnya
+            pakai <code>xbps-install -R</code>, lalu injeksi konfigurasi. Semua
+            yang lo lihat di ISO, LightDM, tema GRUB "Sleek", service runit
+            itu hasil injeksi dari direktori <code>common/</code>.
+          </p>
+
+          <h2>Persiapan: host build-nya wajib Void</h2>
+          <p>
+            Ini hal pertama yang harus diakui: t4n-live <strong>gak dijamin
+            jalan</strong> di distro lain atau di dalam container. Skripnya
+            manggil <code>xbps</code>, <code>xchroot</code>, dan module
+            dracut kustom, semuanya environment Void. Jadi host gue
+            sendiri Void Linux x86_64 (bisa juga VM biar aman).
+          </p>
+          <p>Dependensi minimal:</p>
+          <pre><code>sudo xbps-install -Su xbps bash xz qemu-user-static</code></pre>
+          <blockquote>
+            <code>qemu-user-static</code> cuma wajib kalau mau build rootfs
+            lintas-arsitektur (misal bikin aarch64 dari host x86_64).
+            Kompresi initramfs default <code>xz</code> — kalau mau lebih
+            cepat pas boot, ada opsi <code>lz4</code> (butuh
+            <code>liblz4</code>).
+          </blockquote>
+
+          <h2>Build ISO pertama</h2>
+          <p>
+            Clone repo, langsung gas. Ini perintah build paling dasar ISO
+            x86_64 varian XFCE lengkap dengan installer:
+          </p>
+          <pre><code>git clone https://github.com/T4n-Labs/t4n-live.git
+cd t4n-live
+sudo ./t4n-iso.sh -a x86_64 -b xfce</code></pre>
+          <p>Arti flag-nya:</p>
+          <ul>
+            <li>
+              <code>-a x86_64</code> — arsitektur target (menentukan
+              <code>XBPS_ARCH</code> dan repo yang dipakai)
+            </li>
+            <li>
+              <code>-b xfce</code> — varian yang di-build (menentukan paket
+              base + config yang diinjeksi)
+            </li>
+          </ul>
+          <p>
+            Di belakang layar, <code>t4n-iso.sh</code> cuma wrapper, dia
+            ngoper semuanya ke <code>t4n-live.sh</code> plus satu paket
+            tambahan: <code>t4n-installer</code>. Outputnya ISO siap burn ke
+            USB atau tes di QEMU.
+          </p>
+
+          <h3>Varian yang tersedia</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Varian (<code>-b</code>)</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>base</code></td>
+                <td>Sistem dasar tanpa DE</td>
+              </tr>
+              <tr>
+                <td><code>server</code></td>
+                <td>Headless (masih dalam pengembangan)</td>
+              </tr>
+              <tr>
+                <td><code>xfce</code></td>
+                <td>Desktop XFCE, X11 + LightDM</td>
+              </tr>
+              <tr>
+                <td><code>xfce-wayland</code></td>
+                <td>Desktop XFCE, Wayland</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2>Kustomisasi: bumbui ISO-nya</h2>
+          <p>
+            Di sinilah serunya. Semua opsi di <code>t4n-live.sh</code> bisa
+            diteruskan dari <code>t4n-iso.sh</code> lewat
+            <code>--</code>:
+          </p>
+          <pre><code>sudo ./t4n-iso.sh -a x86_64 -b xfce -- \
+  -p "firefox neovim git htop" \
+  -I ./my-overlay/ \
+  -C "live.autologin live.shell=/bin/bash" \
+  -o T4nOS-xfce-custom.iso</code></pre>
+          <ul>
+            <li>
+              <code>-p</code> — paket ekstra yang di-install ke dalam ISO
+            </li>
+            <li>
+              <code>-I</code> — seluruh isi direktori ini disalin ke rootfs
+              (cara gue masukin wallpaper, skrip, dotfiles)
+            </li>
+            <li>
+              <code>-C</code> — argumen kernel command line tambahan
+            </li>
+            <li>
+              <code>-o</code> — nama file output
+            </li>
+          </ul>
+          <p>
+            Ada juga <code>-S</code> buat aktivasi service,
+            <code>-e</code> buat ganti shell default root, dan
+            <code>-K</code> kalau mau ngintip isi builddir buat debugging.
+            Daftar lengkapnya ada di <code>./t4n-live.sh -h</code>.
+          </p>
+
+          <h3>Parameter kernel yang paling sering gue pakai</h3>
+          <p>
+            Karena ini live system, banyak perilaku dikontrol dari kernel
+            cmdline pas boot:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Fungsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>live.autologin</code></td>
+                <td>Lewati login screen di tty1</td>
+              </tr>
+              <tr>
+                <td><code>live.user=nama</code></td>
+                <td>Ganti username non-root (default: <code>anon</code>)</td>
+              </tr>
+              <tr>
+                <td><code>live.shell=path</code></td>
+                <td>Shell default user live</td>
+              </tr>
+              <tr>
+                <td><code>locale.LANG=..</code></td>
+                <td>Set locale (default: <code>en_US.UTF-8</code>)</td>
+              </tr>
+              <tr>
+                <td><code>console=ttyS0</code></td>
+                <td>Aktifkan serial console</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Semua ini dihandle modul dracut kustom di <code>dracut/vmklive/</code>
+            - <code>adduser.sh</code> bikin user live-nya,
+            <code>locale.sh</code> set locale, <code>display-manager-autologin.sh</code>
+            urus autologin LightDM. Gak ada sihir, cuma skrip shell yang
+            dijalankan saat initramfs boot.
+          </p>
+
+          <h2>Jalur ARM: 3 langkah ke Raspberry Pi</h2>
+          <p>
+            Build ISO x86 itu jalur "hangat". Untuk ARM alurnya beda, dengan
+            tiga tahap, dan ini bagian favorit gue karena di sinilah
+            <code>qemu-user-static</code> + <code>xchroot</code> jadi bintang:
+          </p>
+          <pre><code># 1. ROOTFS: sistem Void dasar TANPA kernel (aarch64)
+sudo ./t4n-rootfs.sh aarch64
+
+# 2. PLATFORMFS: ROOTFS tadi + kernel khusus platform
+sudo ./t4n-platformfs.sh rpi-aarch64 void-aarch64-ROOTFS-*.tar.xz
+
+# 3. IMAGE: filesystem utuh 2 partisi (/boot + /), siap flash
+sudo ./t4n-image.sh void-rpi-aarch64-PLATFORMFS-*.tar.xz</code></pre>
+          <p>Terus flash ke SD card:</p>
+          <pre><code>dd if=void-rpi-aarch64-*.img of=/dev/sdX bs=4M status=progress</code></pre>
+          <blockquote>
+            ⚠️ Ganti <code>/dev/sdX</code> dengan device SD card yang bener.
+            Cek dua kali pakai <code>lsblk</code>, salah target = data hilang.
+          </blockquote>
+          <p>
+            Kenapa dipisah tiga? Karena ROOTFS itu generik (satu build untuk
+            semua arsitektur), sedangkan kernel itu spesifik platform. Dengan
+            memisahkannya, gak perlu rebuild rootfs 1GB buat tiap-tiap board
+            cukup tukar lapisan kernelnya. Platform yang udah didukung:
+            rpi (armv6l/v7l/aarch64), pinebookpro, pinephone, rock64,
+            rockpro64, sampai asahi.
+          </p>
+
+          <h2>Eksperimen lain: netboot, Packer, container</h2>
+          <p>
+            Toolchain-nya ngerambah lebih jauh dari sekadar ISO:
+          </p>
+          <ul>
+            <li>
+              <strong>Netboot/PXE</strong> — <code>t4n-net.sh</code> bikin
+              tarball PXE, cocok buat boot T4n OS di jaringan lokal tanpa
+              media fisik.
+            </li>
+            <li>
+              <strong>VM image</strong> — konfigurasi
+              <a href="https://www.packer.io/" target="_blank">Packer</a> di
+              <code>packer/</code> bikin image QEMU/VirtualBox/Vagrant
+              otomatis, lengkap dgn preseed:
+            </li>
+          </ul>
+          <pre><code>packer init packer/plugins.pkr.hcl
+packer build packer/hcl2/source-qemu.pkr.hcl</code></pre>
+          <ul>
+            <li>
+              <strong>Container</strong> — build environment-nya sendiri bisa
+              dikemas jadi OCI image, biar build reproducible di CI:
+            </li>
+          </ul>
+          <pre><code>podman build -f container/Containerfile -t t4n-live:latest
+# atau multi-target:
+docker buildx bake -f container/docker-bake.hcl</code></pre>
+
+          <h2>Anatomi repo (versi singkat)</h2>
+          <p>
+            Buat yang mau ikut baca kodenya, ini peta yang paling relevan:
+          </p>
+          <ul>
+            <li>
+              <code>common/cli/</code> — seluruh konfigurasi yang diinjeksi:
+              LightDM, polkit, Xorg, dan <code>runit/</code> (stage 1/2/3 +
+              core-services + service default)
+            </li>
+            <li>
+              <code>common/cli/sleek/</code> — tema GRUB kustom: background,
+              font Poppins/Terminus, 60+ ikon distro buat multiboot
+            </li>
+            <li>
+              <code>dracut/</code> — modul initramfs:
+              <code>vmklive</code> (jantung live system),
+              <code>autoinstaller</code>, <code>netmenu</code>
+            </li>
+            <li>
+              <code>grub/</code> &amp; <code>isolinux/</code> — template
+              bootloader (UEFI &amp; legacy BIOS)
+            </li>
+            <li>
+              <code>lib.sh</code> — fungsi bersama: mount, xchroot, injeksi
+              config
+            </li>
+          </ul>
+          <p>
+            Dokumentasi lengkap (bahasa Indonesia &amp; Inggris) ada di
+            <code>vdocs/</code> di dalam repo.
+          </p>
+
+          <h2>Penutup</h2>
+          <p>
+            Build distro ternyata bukan soal ilmu hitam, itu cuma rangkaian
+            xbps, chroot, dracut, dan banyak banget skrip shell yang sabar.
+            Yang bikin T4n OS "beda" bukan kernelnya, tapi keputusan-keputusan
+            kecil: init apa, service apa yang nyala, login-nya kayak gimana,
+            bootloader-nya tampil kayak apa.
+          </p>
+          <p>
+            Kalau lo pengen nyoba, mulai dari yang paling gampang:
+            <code>sudo ./t4n-iso.sh -a x86_64 -b xfce</code> di VM. Kalau
+            berhasil boot dan lo ngerasa "oh, cuma gitu doang?" selamat,
+            lo udah bisa bikin distro sendiri. Source Code rilisnya:
+            <a href="https://github.com/T4n-Labs/t4n-live" target="_blank">
+              github.com/T4n-Labs/t4n-live
+            </a>.
+          </p>
+        </div>
+        <!-- ═══════════ AKHIR KONTEN ═══════════ -->
+
+    <script src="../../blog-data.js"></script>
+    <script
+      src="../article.js"
+      data-post="assets/site/linux/build-t4nos.html"></script>
+  </body>
+</html>

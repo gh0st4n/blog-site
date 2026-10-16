@@ -1,0 +1,116 @@
+/* ══════════════════════════════════════════════════════════════
+   BLOG — BASE CSS KHUSUS HALAMAN ARTIKEL (assets/site/)
+   ──────────────────────────────────────────────────────────────
+   Dipakai HANYA oleh artikel di assets/site/<slug>/.
+   Homepage GAK me-load file ini (homepage pakai /assets/style.css).
+
+   Isi: variabel tema + reset + komponen kecil yang dipakai
+   artikel (.mono, .nowrap, .project-link, .tag, .post-meta).
+   Layout & isi artikel → article.css (sefolder).
+
+   ⚠ GANTI TEMA: sinkronkan nilai :root di sini dengan
+   /assets/style.css — dua file ini satu keluarga warna.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── variabel tema — salinan :root dari /assets/style.css ─── */
+:root {
+  --bg-main: #0a0a0f;
+  --bg-card: #10101a;
+  --bg-accent: #14141f;
+  --primary: #7c3aed;
+  --secondary: #a855f7;
+  --accent-cyan: #22d3ee;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --border: #1e1e2e;
+  --glow: rgba(124, 58, 237, 0.15);
+
+  --font-heading: "JetBrains Mono", monospace;
+  --font-body: "Inter", sans-serif;
+}
+
+/* ─── reset ─── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ─── utilities ─── */
+.mono {
+  font-family: var(--font-heading);
+}
+
+/* token [ ... ] dilarang patah baris di tengah */
+.nowrap {
+  white-space: nowrap;
+}
+
+/* ─── komponen kecil yang dipakai artikel ─── */
+
+/* link terminal: [ ← Kembali ke Blog ] dst. */
+.project-link {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.project-link:hover {
+  color: var(--secondary);
+}
+
+/* chip tag di bawah judul */
+.tag {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* baris meta: tanggal & durasi baca */
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.post-meta i {
+  color: var(--primary);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 25px;
+}
