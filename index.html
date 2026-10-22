@@ -24,6 +24,12 @@
       ├── style.css         ← semua styling
       ├── icons/            ← favicon
       └── site/             ← artikel per post (1 folder = 1 post)
+
+  FIX SEO (2026-10-23): head dilengkapi meta lengkap (robots, canonical,
+  keywords, Open Graph, Twitter Card, theme-color) + JSON-LD @graph
+  Person/WebSite/Blog/Organization dgn @id konsisten ke ekosistem
+  T4n Labs. SARAN: tiap post di assets/site/<slug>/ sebaiknya punya
+  meta description + JSON-LD BlogPosting sendiri (URL unik per post).
   ════════════════════════════════════════════════════════════════
 -->
 <html lang="id">
@@ -31,16 +37,115 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Blog • Gh0sT4n</title>
+    <!-- ═══════════ IDENTITAS & SEO ═══════════
+         FIX SEO: title 56 kar, description 148 kar, robots, canonical,
+         keywords, author, theme-color, Open Graph & Twitter Card
+         lengkap, JSON-LD @graph Person + WebSite + Blog + Organization
+         (@id konsisten dgn situs utama & ekosistem T4n Labs). -->
+    <title>Blog Gh0sT4n — Write-up Linux, Security, dan Open-Source</title>
     <meta
       name="description"
-      content="Blog Gh0sT4n — write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source." />
-    <link rel="icon" type="image/png" href="assets/icons/Gh0sT4n.png" />
-    <meta property="og:site_name" content="Gh0sT4n Blog" />
-    <meta property="og:title" content="Blog • Gh0sT4n" />
+      content="Blog Gh0sT4n (Muhammad Luthfi Fakhmar) — write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source, langsung dari terminal." />
+    <meta name="author" content="Gh0sT4n (Muhammad Luthfi Fakhmar)" />
     <meta
-      property="og:description"
-      content="Write-up, catatan, dan tutorial seputar Linux & low-level security." />
+      name="keywords"
+      content="blog Gh0sT4n, write-up linux, low-level security, tutorial linux, open source, catatan teknis, linux security, Muhammad Luthfi Fakhmar, T4n Labs, Indonesia" />
+    <!-- Crawling: indeks penuh + preview gambar besar di hasil pencarian -->
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <!-- Canonical: cegah duplikasi *.github.io vs subdomain custom -->
+    <link rel="canonical" href="https://blog.gh0st4n.my.id/" />
+    <!-- Warna address bar browser mobile (sesuaikan bila tema berubah) -->
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/png" href="assets/icons/Gh0sT4n.png" />
+
+    <!-- ===== OPEN GRAPH: preview share WA/Discord/FB (locale ID) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gh0sT4n Blog" />
+    <meta property="og:title" content="Blog Gh0sT4n — Write-up Linux, Security, dan Open-Source" />
+    <meta property="og:description" content="Write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source." />
+    <meta property="og:url" content="https://blog.gh0st4n.my.id/" />
+    <meta property="og:image" content="https://blog.gh0st4n.my.id/assets/icons/Gh0sT4n.png" />
+    <meta property="og:image:alt" content="Avatar Gh0sT4n" />
+    <meta property="og:locale" content="id_ID" />
+
+    <!-- ===== TWITTER CARD ===== -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Blog Gh0sT4n — Write-up Linux, Security, dan Open-Source" />
+    <meta name="twitter:description" content="Write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source." />
+    <meta name="twitter:image" content="https://blog.gh0st4n.my.id/assets/icons/Gh0sT4n.png" />
+
+    <!-- ===== STRUCTURED DATA (schema.org JSON-LD) =====
+         Person & Organization memakai @id yang SAMA dgn situs utama
+         (gh0st4n.my.id) dan situs T4n Labs agar entitas Google saling
+         tergabung lintas-domain. SearchAction TIDAK dipasang: kolom
+         pencarian blog murni client-side (query tidak tersimpan di
+         URL) sehingga tidak ada URL hasil stabil utk diindeks.
+         SARAN: tiap halaman post (assets/site/<slug>/) sebaiknya
+         diberi meta + JSON-LD BlogPosting sendiri. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://gh0st4n.my.id/#person",
+            "name": "Muhammad Luthfi Fakhmar",
+            "alternateName": "Gh0sT4n",
+            "url": "https://gh0st4n.my.id/",
+            "image": "https://blog.gh0st4n.my.id/assets/icons/Gh0sT4n.png",
+            "jobTitle": "Founder T4n-Labs & Vulnerability Researcher",
+            "description": "System developer dan peminat Linux asal Aceh, Indonesia; founder ekosistem T4n Labs.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressRegion": "Aceh",
+              "addressCountry": "ID"
+            },
+            "worksFor": { "@id": "https://t4nos.t4nlabs.web.id/#organization" },
+            "sameAs": [
+              "https://github.com/gh0st4n",
+              "https://gitlab.com/gh0st4n",
+              "https://instagram.com/gh0st4n_",
+              "https://www.linkedin.com/in/m-luthfi-fakhmar/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://blog.gh0st4n.my.id/#website",
+            "name": "Blog Gh0sT4n",
+            "url": "https://blog.gh0st4n.my.id/",
+            "inLanguage": "id",
+            "description": "Write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source.",
+            "author": { "@id": "https://gh0st4n.my.id/#person" },
+            "publisher": { "@id": "https://gh0st4n.my.id/#person" }
+          },
+          {
+            "@type": "Blog",
+            "@id": "https://blog.gh0st4n.my.id/#blog",
+            "name": "Blog Gh0sT4n",
+            "url": "https://blog.gh0st4n.my.id/",
+            "inLanguage": "id",
+            "description": "Write-up, catatan, dan tutorial seputar Linux, low-level security, dan open-source.",
+            "publisher": { "@id": "https://gh0st4n.my.id/#person" },
+            "isPartOf": { "@id": "https://blog.gh0st4n.my.id/#website" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://t4nos.t4nlabs.web.id/#organization",
+            "name": "T4n Labs",
+            "url": "https://t4nos.t4nlabs.web.id/",
+            "founder": { "@id": "https://gh0st4n.my.id/#person" },
+            "sameAs": [
+              "https://github.com/T4n-Labs",
+              "https://gitlab.com/t4n-labs",
+              "https://www.instagram.com/t4n_labs",
+              "https://discord.gg/yM5s7RWBxq"
+            ]
+          }
+        ]
+      }
+    </script>
 
     <!-- Font & ikon: sama dgn situs utama
          Inter          → font body
@@ -48,6 +153,8 @@
          Phosphor Icons → semua <i class="ph ph-..."> -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- SEO/performa: preconnect ke CDN unpkg agar ikon Phosphor termuat lebih cepat -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet" />
@@ -61,7 +168,7 @@
          Logo & link saudara → situs utama / certs -->
     <header>
       <div class="container">
-        <nav>
+        <nav aria-label="Navigasi utama">
           <a class="logo" href="https://gh0st4n.my.id">Gh0sT4n</a>
           <div class="nav-links" id="navLinks">
             <a href="https://gh0st4n.my.id">Portfolio</a>
@@ -80,8 +187,9 @@
     <main>
       <!-- ══════════════════ HERO ══════════════════ -->
       <section class="page-hero">
-        <canvas id="particles-canvas"></canvas>
-        <div class="scanline-overlay"></div>
+        <!-- Aksesibilitas: canvas & scanline murni dekoratif -->
+        <canvas id="particles-canvas" aria-hidden="true"></canvas>
+        <div class="scanline-overlay" aria-hidden="true"></div>
 
         <div class="hero-content fade-in-up">
           <div class="hero-greeting">&gt; tail -f ~/posts.log</div>
@@ -128,6 +236,19 @@
               <p class="empty-note mono">
                 [ JavaScript mati - daftar post gak bisa dirender ]
               </p>
+              <!-- SEO fallback: konten bermakna utk crawler & pengunjung
+                   non-JS, karena daftar post dirender oleh script.js -->
+              <div style="max-width:720px; margin:2rem auto; padding:1.5rem; border:1px solid #333; border-radius:12px;">
+                <h2>Blog Gh0sT4n</h2>
+                <p>
+                  Blog Gh0sT4n (Muhammad Luthfi Fakhmar, founder T4n-Labs)
+                  memuat write-up, catatan, dan tutorial seputar Linux,
+                  low-level security, dan open-source. Aktifkan JavaScript
+                  untuk melihat daftar post, atau jelajahi
+                  <a href="https://gh0st4n.my.id">portofolio utama</a> dan
+                  <a href="https://certs.gh0st4n.my.id">halaman sertifikat</a>.
+                </p>
+              </div>
             </noscript>
           </div>
 
