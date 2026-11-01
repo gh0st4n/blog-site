@@ -1,0 +1,205 @@
+<!doctype html>
+<!--
+  POST: My Journey pwn.college
+  Path: assets/site/pwn.college/pwn.college1.html
+  Metadata otomatis dari blog-data.js via article.js
+  → data-post harus sama persis dgn "selengkapnya" di data.
+  Journey lengkap: https://github.com/gh0st4n/pwn.college
+-->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- boilerplate generik — DITIMPA article.js dari data saat runtime -->
+    <title>Blog • Gh0sT4n</title>
+
+    <link rel="icon" type="image/png" href="../../icons/Gh0sT4n.png" />
+
+    <!-- font & ikon: identik utk semua artikel (copy-paste) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../article.css" />
+  </head>
+
+  <body>
+    <!-- ═══════════ KONTEN — satu-satunya yang ditulis manual ═══════════ -->
+    <div class="post-body">
+      <p>
+        Ada satu skill yang gue anggap semacam superpower di dunia security:
+        bisa membedah program yang <strong>kodenya gak lo punya</strong>. Lo
+        cuma pegang file binary ,gak ada source, gak ada komentar, gak ada
+        nama variabel, tapi lo tetap bisa tau program itu ngapain. Nah,
+        tempat gue belajar skill itu secara sistem adalah
+        <a href="https://pwn.college/" target="_blank">pwn.college</a>.
+      </p>
+      <p>
+        Post ini catatan perjalanan gue di jalur
+        <strong>Reverse Engineering</strong>, apa yang gue pelajari,
+        tool yang gue pakai, dan di mana bagian yang paling bikin kepala
+        berasap. Kalau mau lihat catatan &amp; progres lengkapnya, semua gue
+        simpen terbuka di
+        <a href="https://github.com/gh0st4n/pwn.college" target="_blank"
+          >github.com/gh0st4n/pwn.college</a
+        >.
+      </p>
+
+      <h2>Apa itu pwn.college</h2>
+      <p>
+        pwn.college adalah <strong>dojo cyber security gratis</strong> dari
+        Arizona State University, dibawain(ASU)
+        <a href="https://twitter.com/yanshosh" target="_blank"
+          >Yan Shoshitaishvili</a
+        >
+        dkk. Filosofinya simpel: security itu gak bisa dikuasain cuma dari
+        nonton video, namun harus <em>hands-on</em>. Jadi formatnya bukan course
+        pasif, tapi:
+      </p>
+      <ul>
+        <li><strong>Module</strong> - satu topik besar (RE, shellcode, kernel, dst.)</li>
+        <li><strong>Lecture</strong> - video yang ngebangun fondasi konsep</li>
+        <li><strong>Challenge</strong> - latihan asli yang lo kerjain di environment dojo</li>
+        <li><strong>Flag</strong> - bukti lo berhasil, formatnya <code>pwn.college{...}</code></li>
+      </ul>
+      <p>
+        Ada dua mode yang penting dipahami pemula:
+        <strong>practice mode</strong> (lo bebas ngopos system-nya, gak ada
+        penilaian) dan <strong>do mode</strong> (challenge asli yang keluarin
+        flag). Rutenya: pahamin di practice, selesaikan di do.
+      </p>
+
+      <h2>Kenapa mulai dari Reverse Engineering</h2>
+      <p>
+        Buat gue, RE itu fondasi. Sebelum bisa nge-exploit sesuatu, lo harus
+        paham dulu <em>apa sebenarnya</em> yang dikerjain program itu dan
+        seringnya satu-satunya sumber kebenaran adalah binary-nya sendiri.
+        RE juga skill yang paling "transferable": dipakai di CTF, malware
+        analysis, audit dependency, sampai sekadar iseng membedah software.
+      </p>
+
+      <h2>Peta perjalanan di modul RE</h2>
+      <p>
+        Modul RE-nya dibangun bertahap, tiap level nambah satu trik baru.
+        Ini garis besar jalur yang gue lalui:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Tahap</th>
+            <th>Yang dipelajari</th>
+            <th>Tool utama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Binary basics</td>
+            <td>Struktur ELF, apa yang terjadi dari source → compile → binary</td>
+            <td><code>file</code>, <code>readelf</code></td>
+          </tr>
+          <tr>
+            <td>Disassembly</td>
+            <td>Membaca assembly x86-64, mengenali pola (prologue, call, cmp/jne)</td>
+            <td><code>objdump -d -M intel</code></td>
+          </tr>
+          <tr>
+            <td>Dynamic analysis</td>
+            <td>Jalanin program sambil ngintip: breakpoint, register, memori</td>
+            <td><code>gdb</code></td>
+          </tr>
+          <tr>
+            <td>Decompiling</td>
+            <td>Naik kelas dari assembly ke pseudocode biar cepet paham</td>
+            <td>Ghidra</td>
+          </tr>
+          <tr>
+            <td>Patching</td>
+            <td>Ngerubah perilaku binary dengan nyunting byte-nya langsung</td>
+            <td>hex editor, <code>objdump</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Tool yang paling sering gue pakai</h2>
+      <p>
+        Trik pertama yang wajib sebelum buka apapun: jangan langsung
+        disassemble. Kenalin binary-nya dulu:
+      </p>
+      <pre><code>file /challenge/babyrev-level-1-0
+strings /challenge/babyrev-level-1-0 | less</code></pre>
+      <p>
+        <code>strings</code> sering ajaib banyak challenge level awal
+        bocor sebagian logikanya lewat string yang gak diobfuscate. Baru
+        setelah itu masuk ke disassembly:
+      </p>
+      <pre><code>objdump -d -M intel /challenge/babyrev-level-1-0 | less</code></pre>
+      <p>
+        Untuk analisis dinamis, <code>gdb</code> itu rumah kedua. Pola kerja
+        gue standar:
+      </p>
+      <pre><code>gdb /challenge/babyrev-level-1-0
+(gdb) break main
+(gdb) run
+(gdb) disass
+(gdb) info registers</code></pre>
+      <blockquote>
+        Latihan terbaik di fase ini: baca fungsi <code>main</code> di
+        disassembly, tebak perilakunya, baru jalankan buat mastiin. Kalau
+        tebakan lo konsisten bener, berarti lo udah mulai "baca" assembly,
+        bukan cuma lihat.
+      </blockquote>
+
+      <h2>Bagian yang paling nyesek</h2>
+      <p>
+        Jujur, minggu-minggu awal itu <em>brutal</em>. Pertama kali buka
+        output <code>objdump</code>, gue disambut ratusan baris assembly dan
+        gue gak ngerti apa-apa. Yang bikin survive cuma satu: sadar bahwa lo
+        gak perlu paham <em>semua</em> baris. RE itu soal nemu jalur
+        <em>decision</em>-nya, di mana program membandingkan sesuatu
+        (<code>cmp</code>), dan ke mana cabangnya (<code>jne</code>,
+        <code>je</code>). Itu aja dulu.
+      </p>
+      <p>
+        Titik baliknya waktu mulai pakai decompiler. Buka binary di
+        Ghidra, tekan decompile, dan assembly yang tadinya 300 baris
+        misterius jadi pseudocode C yang bisa dibaca. Bukan berarti Ghidra
+        bikin lo gak perlu ngerti assembly, justru paham assembly yang
+        bikin lo bisa baca output Ghidra yang kadang salah atau ngeselin.
+      </p>
+
+      <h2>Kenapa worth it</h2>
+      <p>
+        Yang gue dapat dari modul ini bukan cuma flag. Yang lebih berharga
+        itu perubahan cara pandang: aplikasi apapun yang lo install, 
+        sekarang bisa lo bedah. Binary itu gak pernah bener-bener
+        rahasia, cuma butuh orang yang sabar baca.
+      </p>
+
+      <h2>Catatan &amp; progres lengkap</h2>
+      <p>
+        Semua catatan belajar, solver, dan progres challenge gue gue buka
+        terbuka di repo ini, biar bisa jadi referensi buat siapa pun yang
+        mau jalanin jalur yang sama:
+      </p>
+      <pre><code>github.com/gh0st4n/pwn.college</code></pre>
+      <p>
+        Kalau lo mau mulain juga: daftar di
+        <a href="https://pwn.college/" target="_blank">pwn.college</a>.
+      </p>
+    </div>
+    <!-- ═══════════ AKHIR KONTEN ═══════════ -->
+
+    <!-- builder: metadata & shell halaman dibangun dari blog-data.js.
+         Urutan WAJIB: blog-data.js dulu, baru article.js.
+         data-post = nilai "selengkapnya" post ini (case-sensitive) -->
+    <script src="../../blog-data.js"></script>
+    <script
+      src="../article.js"
+      data-post="assets/site/pwn.college/pwn.college1.html"></script>
+  </body>
+</html>

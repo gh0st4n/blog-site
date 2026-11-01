@@ -35,7 +35,7 @@ const BLOG = [
     subjudul:
       "Catatan lengkap proses gue mem-build ISO T4n OS pakai T4n-Live dari repo kosong, xchroot, sampai ISO bisa di-boot.",
     durasi: "9",
-    tanggal: "16 Dec 2026",
+    tanggal: "16 Oct 2026",
     selengkapnya: "assets/site/linux/build-t4nos.html",
   },
   // {
@@ -47,12 +47,13 @@ const BLOG = [
   //   tanggal: "28 Dec 2026",
   //   selengkapnya: "assets/site/pwn.college/",
   // },
-  // {
-  //   kategori: "reverse-engineering, writeup",
-  //   judul: "[ GANTI: judul post cracks.me ]",
-  //   subjudul: "[ GANTI: deskripsi singkat post cracks.me ]",
-  //   durasi: "7",
-  //   tanggal: "[ GANTI: tanggal ]",
-  //   selengkapnya: "assets/site/cracks.me/",
-  // },
+  {
+    kategori: "reverse-engineering, writeup",
+    judul: "My Journey pwn.college",
+    subjudul:
+      "Perjalanan gw dalam belajar Reverse Engineering di pwn.college - dari objdump yang bikin pusing sampai decompiler jadi rumah kedua.",
+    durasi: "7",
+    tanggal: "1 Nov 2026",
+    selengkapnya: "assets/site/pwn.college/pwn.college1.html",
+  },
 ];
