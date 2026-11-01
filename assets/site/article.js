@@ -93,7 +93,7 @@
   if (!article) {
     const wrap = el("div", "post-wrap");
     const back = el("a", "project-link post-back", "[ ← Kembali ke Blog ]");
-    back.href = "../../index.html"; // jalan di local (file://) & GitHub Pages
+    back.href = "../../../index.html"; // jalan di local (file://) & GitHub Pages
 
     article = el("article", "post-article");
     const end = el("p", "post-end mono", "// end of post — thanks for reading");
